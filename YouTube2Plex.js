@@ -11,7 +11,9 @@ const port = 818;
 
 var plexVideoFolder = ''; // FULL PATH to Plex Video content folder
 var plexMusicFolder = ''; // FULL PATH to Plex Audio content folder
-
+var convertedVideos = path.join(__dirname, 'converted', 'Videos/');
+var convertedAudio = path.join(__dirname, 'converted', 'audio/');
+var convertedFolder = path.join(__dirname, 'converted');
 // var enableLogging = '';  1 or 0 - Easy Logging for making reports on the github
 
 app.use(bp.json())
@@ -34,7 +36,7 @@ app.post('/download', async function(req, res) {
     ytdl(youtubelink, {
       filter: 'audioonly',
       quality: 'highestaudio'
-    }.pipe(fs.createWriteStream(`/converted/audios/${info.videoDetails.title}.mp3`)))
+    }.pipe(fs.createWriteStream(`${info.videoDetails.title}.mp3`)))
     .on('progress', function(progress) {
       console.log('Conversion: ' + Math.round(100*progress.percent)/100 + '% done');
     })
@@ -42,8 +44,16 @@ app.post('/download', async function(req, res) {
       if (!err)
         console.log(`=======\n${info.videoDetails.title} Audio downloaded successfully\n=======\n`);
     })
-  }
 
+    setTimeout(moveMP3, 15000);
+
+    function moveMP3(){
+      fs.move(`${info.videoDetails.title}.mp3`, convertedAudio, err => {
+        if (err) return console.error(err)
+        console.log(`======\n${info.videoDetails.title}.mp3 downloaded successfully!\n=======\n`)
+      })
+    }
+  }
 
   if (filetype === "mp4") {
     ytdl(youtubelink, {
@@ -61,7 +71,7 @@ app.post('/download', async function(req, res) {
       new ffmpeg(`${info.videoDetails.title}.mp4`)
         .setFfmpegPath(ffmpegPath)
         .addInput(`${info.videoDetails.title}.mp3`)
-        .output(__dirname + '/converted/vidoes/' + `${info.videoDetails.title}.mp4`)
+        .output(convertedVideos + `${info.videoDetails.title}.mp4`)
 
         .on('progress', function(progress) {
           console.log('Conversion: ' + Math.round(100*progress.percent)/100 + '% done');
@@ -97,7 +107,7 @@ app.post('/download', async function(req, res) {
 
 app.get('/MoveMP3s', function(req, res) {
 
-  fs.move(__dirname + '/converted/audio/', plexMusicFolder, err => {
+  fs.move(convertedVideos, plexMusicFolder, err => {
     if (err) return console.error(err)
     console.log('======\nMP3s moved successfully!\n=======\n')
   })
@@ -107,7 +117,7 @@ app.get('/MoveMP3s', function(req, res) {
 
 app.get('/MoveMP4s', function(req, res){
 
-  fs.move(__dirname + '/converted/vidoes/', plexVideoFolder, err => {
+  fs.move(convertedVideos, plexVideoFolder, err => {
     if (err) return console.error(err)
       console.log('======\nMP4s moved successfully!\n=======\n')
   })
@@ -122,8 +132,8 @@ app.listen(port, () => {
 });
 
 // checks for afew required folders and makes them if they dont already exist
-if (!fs.existsSync(__dirname + '/converted/')){
-    fs.mkdirSync(__dirname + '/converted/');
-    fs.mkdirSync(__dirname + '/converted/videos/');
-    fs.mkdirSync(__dirname + '/converted/audio/');
+if (!fs.existsSync(convertedFolder)){
+    fs.mkdirSync(convertedFolder);
+    fs.mkdirSync(convertedVideos);
+    fs.mkdirSync(convertedAudio);
 }
