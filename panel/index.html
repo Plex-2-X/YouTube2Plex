@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="MIXERRULES">
+
+  <title>Bare - Start Bootstrap Template</title>
+
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+
+  <style>
+    body {
+      overflow: hidden;
+      /* Hide scrollbars */
+    }
+  </style>
+</head>
+
+<body style="background:#282828;color: white;" class="vw-100 vh-100">
+
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-light static-top" style="background:#FF0000;">
+    <div class="container justify-content-center">
+      <div class="row justify-content-center">
+        <div class="col"><a id="MoveMP3s" type="button" class="btn btn-secondary" href="/MoveMP3s">Move MP3's to Plex</a></div>
+        <div class="col"><h2 style="color:white;margin-block-end:0px;">YouTube2Plex.Js</h2></div>
+        <div class="col"><a id="MoveMP4s" type="button" class="btn btn-secondary" href="/MoveMP4s">Move MP4's to Plex</a></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Content -->
+  <div class="container">
+    <div class="row">
+      <div class="col text-center justify-content-center">
+        <h1 class="mt-5"> Enter YouTube Link below </h1>
+        <form id="YouTubeLink">
+          <div class="form-group">
+            <div class="form-inline" style="display:inline;!important">
+              <input type="text" class="form-control" id="link" placeholder="Youtube Link here" name="link" size="50"><br><br>
+              <div style="display:inline-flex;!important" class="text-center">
+              <center>
+                <button type="submit" class="btn btn-primary" id="mp3" style="display:none">MP3</button> <button type="submit" class="btn btn-success" id="mp4" style="display:none">MP4</button>
+              </center>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <center class="h-100">
+    <iframe id="preview" style="display:none;" width="70%!important" height="70%!important" src="https://www.youtube.com/embed/tgbNymZ7vqY"></iframe>
+  </center>
+  <script>
+    $(document).ready(function() {
+      $("#link").change(function() {
+        var link = $('#YouTubeLink').serialize();
+        var decodedLink = decodeURIComponent(link);
+        newlink = decodedLink.split("=").pop();
+
+        $("#preview").attr("src", "https://www.youtube.com/embed/" + newlink);
+        $("#preview").css("display", "block");
+        $("#mp3").css("display", "");
+        $("#mp4").css("display", "");
+      });
+
+      $("#mp3").click(function() {
+        var formData = $('#YouTubeLink').serializeArray();
+        formData.push({ name: "type", value: "mp3" });
+
+        $.ajax({
+          url: '/download',
+          type: 'post',
+          data: formData,
+          dataType: 'json',
+          success: function(data) {
+            alert($('#YouTubeLink').serialize());
+          }
+        });
+      });
+    })
+    $("#mp4").click(function() {
+      var formData = $('#YouTubeLink').serializeArray();
+      formData.push({ name: "type", value: "mp4" });
+
+      $.ajax({
+        url: '/download',
+        type: 'post',
+        data: formData,
+        dataType: 'json',
+        success: function(data) {
+          alert($('#YouTubeLink').serialize());
+        }
+      });
+    });
+  </script>
+
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
