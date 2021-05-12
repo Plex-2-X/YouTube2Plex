@@ -3,16 +3,16 @@
     "@ffmpeg-installer/ffmpeg": "^1.0.20",
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
+    "ffmetadata": "^1.7.0",
     "ffmpeg": "^0.0.4",
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^9.1.0",
     "ytdl-core": "^4.5.0"
   },
-  "name": "youtube2plex",
+  "name": "YouTube2Plex",
   "description": "A simple YouTube to MP3 and MP4 downloader that allows you to add the files directly to your Plex Media Server's content library",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "YouTube2Plex.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
