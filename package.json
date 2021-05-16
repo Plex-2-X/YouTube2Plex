@@ -14,7 +14,7 @@
   },
   "name": "YouTube2Plex",
   "description": "A simple YouTube to MP3 and MP4 downloader that allows you to add the files directly to your Plex Media Server's content library",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "YouTube2Plex.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

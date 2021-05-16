@@ -244,7 +244,7 @@ async function updateCheck() {
       console.log("=======\nYou are running an unreleased version!\n=======\n")
     }
   }
-  if (semver.lt(local,remote) {
+  if (semver.lt(local,remote) == true {
     console.log("=======\nYou are running version " + localPackageJson.version + " which is outdated! We will auto update for you! \n=======\n")
 
     // get package.json file from gethub
