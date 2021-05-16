@@ -1,12 +1,15 @@
+const npm = require('npm');
 const path = require('path');
 const https = require('https');
 const fs = require('fs-extra');
 const bp = require('body-parser');
 const ytdl = require('ytdl-core');
 const express = require('express');
+const fetch = require('node-fetch');
 const ffmpeg = require('fluent-ffmpeg');
+const ffmetadata = require("ffmetadata");
+const childProcess = require("child_process");
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-ffmetadata = require("ffmetadata");
 
 const app = express();
 const port = 818;
@@ -69,23 +72,23 @@ app.post('/download', async function(req, res) {
 
   if (filetype === "mp3") {
 
-    /*  ytdl(youtubelink, {
-          filter: 'audioonly',
-          quality: 'highestaudio'
-        }.pipe(fs.createWriteStream(`${info.videoDetails.title}.mp3`)))
-        .on('progress', function(progress) {
-          console.log('Conversion: ' + Math.round(100 * progress.percent) / 100 + '% done');
-        })
-        .on('end', function(err) {
-          if (!err)
-            console.log(`=======\n${info.videoDetails.title} Audio downloaded successfully\n=======\n`);
-        })
-        */
+    ytdl(youtubelink, {
+        filter: 'audioonly',
+        quality: 'highestaudio'
+      })
+      .pipe(fs.createWriteStream(`${fixedtitle}.mp3`))
+      .on('progress', function(progress) {
+        console.log('Conversion: ' + Math.round(100 * progress.percent) / 100 + '% done');
+      })
+      .on('end', function(err) {
+        if (!err)
+          console.log(`=======\n${info.videoDetails.title} Audio downloaded successfully\n=======\n`);
+      })
 
     setTimeout(moveMP3, 15000);
 
     function moveMP3() {
-      fs.move(`${info.videoDetails.title}.mp3`, convertedAudio, err => {
+      fs.move(`${fixedtitle}.mp3`, convertedAudio, err => {
         if (err) return console.error(err)
         console.log(`======\n${info.videoDetails.title}.mp3 downloaded successfully!\n=======\n`)
       })
@@ -94,9 +97,14 @@ app.post('/download', async function(req, res) {
 
   if (filetype === "mp4") {
     console.log("starting download of " + title + '\n');
-    ytdl(youtubelink, {quality: 'highestvideo'}).pipe(fs.createWriteStream(`${fixedtitle}.mp4`));
+    ytdl(youtubelink, {
+      quality: 'highestvideo'
+    }).pipe(fs.createWriteStream(`${fixedtitle}.mp4`));
 
-    ytdl(youtubelink, {filter: 'audioonly',quality: 'highestaudio'  }).pipe(fs.createWriteStream(`${fixedtitle}.mp3`));
+    ytdl(youtubelink, {
+      filter: 'audioonly',
+      quality: 'highestaudio'
+    }).pipe(fs.createWriteStream(`${fixedtitle}.mp3`));
 
     setTimeout(runffmpeg, 15000);
 
@@ -129,7 +137,7 @@ app.post('/download', async function(req, res) {
         });
         console.log(`=======\n`);
 
-      /*  var data = {
+        var data = {
           author: `${info.videoDetails.author.name}`,
           title: title,
           description: description,
@@ -144,7 +152,7 @@ app.post('/download', async function(req, res) {
               console.log('Temp Thumbnail deleted!');
             }
           });
-        }); */
+        });
       })
       newFfmpeg.on('error', function(err) {
         console.log('error: ' + err);
@@ -212,4 +220,78 @@ if (!fs.existsSync(convertedFolder)) {
   fs.mkdirSync(convertedFolder);
   fs.mkdirSync(convertedVideos);
   fs.mkdirSync(convertedAudio);
+}
+
+updateCheck();
+
+async function updateCheck() {
+  let remoteUrl = 'https://raw.githubusercontent.com/mixerrules/YouTube2Plex/main/package.json';
+  let remotePackage = await fetch(remoteUrl);
+  let remotePackageJson = await remotePackage.json(); // read response body and parse as JSON
+  const localPackageJson = require('./package.json');
+
+  if (enableLogging === "1") {
+    console.log(remotePackageJson.version + " remote version");
+    console.log(localPackageJson.version + " local version");
+  }
+
+  if (localPackageJson.version = remotePackageJson.version) {
+    if (enableLogging === "1") {
+      console.log("=======\nYou are running the current version of YouTube2Plex!\n=======\n")
+    }
+  }
+  if (localPackageJson.version > remotePackageJson.version) {
+    if (enableLogging === "1") {
+      console.log("=======\nYou are running an unreleased version!\n=======\n")
+    }
+  }
+  if (localPackageJson.version < remotePackageJson.version) {
+    console.log("=======\nYou are running version " + localPackageJson.version + " which is outdated! We will auto update for you! \n=======\n")
+
+
+    // get package.json file from gethub
+    https.get("https://raw.githubusercontent.com/mixerrules/YouTube2Plex/main/package-lock .json", (res) => {
+      const path = `${__dirname}/package-lock.json`;
+      const filePath = fs.createWriteStream(path);
+      res.pipe(filePath);
+      filePath.on('finish', () => {
+        filePath.close();
+        console.log('package-lock.json updated.');
+      })
+    })
+
+    // get package.json file from gethub
+    https.get("https://raw.githubusercontent.com/mixerrules/YouTube2Plex/main/package.json", (res) => {
+      const path = `${__dirname}/package.json`;
+      const filePath = fs.createWriteStream(path);
+      res.pipe(filePath);
+      filePath.on('finish', () => {
+        filePath.close();
+        console.log('package.json updated.');
+      })
+    })
+
+    // Get YT2P JS file from github
+    https.get("https://raw.githubusercontent.com/mixerrules/YouTube2Plex/main/YouTube2Plex.js", (res) => {
+      const path = `${__dirname}/YouTube2Plex.js`;
+      const filePath = fs.createWriteStream(path);
+      res.pipe(filePath);
+      filePath.on('finish', () => {
+        filePath.close();
+        console.log('YouTube2Plex.js is finished updating');
+      })
+    })
+
+    // force update npm
+    childProcess.exec(`npm update`, async (error) => {
+      if (error) {
+        console.log('error is:', error);
+        //or
+        throw error;
+      }
+      console.console.log(finished);
+    });
+  }
+
+  setTimeout(updateCheck, 10800000)
 }
