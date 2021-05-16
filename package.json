@@ -9,11 +9,12 @@
     "fs-extra": "^9.1.0",
     "node-fetch": "^2.6.1",
     "npm": "^7.13.0",
+    "semver": "^7.3.5",
     "ytdl-core": "^4.5.0"
   },
   "name": "YouTube2Plex",
   "description": "A simple YouTube to MP3 and MP4 downloader that allows you to add the files directly to your Plex Media Server's content library",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "YouTube2Plex.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

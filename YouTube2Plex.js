@@ -2,6 +2,7 @@ const npm = require('npm');
 const path = require('path');
 const https = require('https');
 const fs = require('fs-extra');
+const semver = require('semver');
 const bp = require('body-parser');
 const ytdl = require('ytdl-core');
 const express = require('express');
@@ -230,24 +231,21 @@ async function updateCheck() {
   let remotePackageJson = await remotePackage.json(); // read response body and parse as JSON
   const localPackageJson = require('./package.json');
 
+  var remote = semver.valid(remotePackageJson.version);
+  var local = semver.valid(localPackageJson.version);
+
   if (enableLogging === "1") {
-    console.log(remotePackageJson.version + " remote version");
-    console.log(localPackageJson.version + " local version");
+    console.log(remote + " remote version");
+    console.log(local + " local version");
   }
 
-  if (localPackageJson.version = remotePackageJson.version) {
-    if (enableLogging === "1") {
-      console.log("=======\nYou are running the current version of YouTube2Plex!\n=======\n")
-    }
-  }
-  if (localPackageJson.version > remotePackageJson.version) {
+  if (semver.gt(local,remote) == true) {
     if (enableLogging === "1") {
       console.log("=======\nYou are running an unreleased version!\n=======\n")
     }
   }
-  if (localPackageJson.version < remotePackageJson.version) {
+  if (semver.lt(local,remote) {
     console.log("=======\nYou are running version " + localPackageJson.version + " which is outdated! We will auto update for you! \n=======\n")
-
 
     // get package.json file from gethub
     https.get("https://raw.githubusercontent.com/mixerrules/YouTube2Plex/main/package-lock .json", (res) => {
@@ -285,13 +283,20 @@ async function updateCheck() {
     // force update npm
     childProcess.exec(`npm update`, async (error) => {
       if (error) {
-        console.log('error is:', error);
-        //or
         throw error;
       }
-      console.console.log(finished);
+      else {
+        console.log("NPM updated");
+      }
     });
   }
+
+  else {
+    if (enableLogging === "1") {
+      console.log("=======\nYou are running the current version of YouTube2Plex!\n=======\n")
+    }
+  }
+
 
   setTimeout(updateCheck, 10800000)
 }
